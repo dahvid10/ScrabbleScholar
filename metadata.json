@@ -1,0 +1,5 @@
+{
+  "name": "Scrabble Scholar",
+  "description": "An AI-powered assistant for Scrabble players. Find valid words, get suggestions from a board image, and chat with a Scrabble expert to enhance your game.",
+  "requestFramePermissions": []
+}
