@@ -16,26 +16,51 @@ const fileToGenerativePart = async (file: File) => {
 };
 
 const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
-    const htmlContent = content
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-        .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italics
-        .split('\n').map(line => {
-            if (line.startsWith('* ')) {
-                return `<li>${line.substring(2)}</li>`;
-            }
-            if (line.trim() === '') {
-                return '<br />';
-            }
-            return `<p>${line}</p>`;
-        }).join('')
-        .replace(/<\/li><p>/g, '</li></ul><p>')
-        .replace(/<p><\/p>/g, '')
-        .replace(/<li>/g, '<ul><li>')
-        .replace(/<\/li>(?!<li>)/g, '</li></ul>');
+    const processLine = (line: string): string => {
+        if (line.startsWith('### ')) return `<h3>${line.substring(4)}</h3>`;
+        if (line.startsWith('## ')) return `<h2>${line.substring(3)}</h2>`;
+        if (line.startsWith('# ')) return `<h1>${line.substring(2)}</h1>`;
+        
+        line = line
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        if (line.trim().startsWith('* ')) return `<li>${line.trim().substring(2)}</li>`;
+        
+        if (line.trim()) return `<p>${line.trim()}</p>`;
 
+        return '';
+    };
+    
+    const lines = content.split('\n');
+    let html = '';
+    let inList = false;
 
-    return <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+        const isListItem = trimmedLine.startsWith('* ');
+
+        if (isListItem && !inList) {
+            html += '<ul>';
+            inList = true;
+        } else if (!isListItem && inList) {
+            html += '</ul>';
+            inList = false;
+        }
+        
+        html += processLine(line);
+    }
+
+    if (inList) {
+        html += '</ul>';
+    }
+
+    return <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: html }} />;
 };
+
+const MAX_FILE_SIZE_MB = 10;
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_LETTERS_LENGTH = 15;
 
 const BoardAnalyzer: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -48,6 +73,16 @@ const BoardAnalyzer: React.FC = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        setError(`Invalid file type. Please upload a PNG, JPG, GIF, or WebP file.`);
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        setError(`File is too large. Please upload an image under ${MAX_FILE_SIZE_MB}MB.`);
+        return;
+      }
+
+      setError(null);
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -66,6 +101,11 @@ const BoardAnalyzer: React.FC = () => {
       setError('Please enter your current letters.');
       return;
     }
+     if (userLetters.trim().length > MAX_LETTERS_LENGTH) {
+      setError(`Please enter no more than ${MAX_LETTERS_LENGTH} letters.`);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setResult(null);
@@ -102,7 +142,7 @@ const BoardAnalyzer: React.FC = () => {
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+              <p className="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
             </div>
           </div>
         </div>
@@ -112,7 +152,8 @@ const BoardAnalyzer: React.FC = () => {
             id="user-letters"
             type="text"
             value={userLetters}
-            onChange={(e) => setUserLetters(e.target.value)}
+            onChange={(e) => setUserLetters(e.target.value.replace(/[^a-zA-Z]/g, ''))}
+            maxLength={MAX_LETTERS_LENGTH}
             placeholder="e.g., AEILNOR"
             className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
           />
@@ -127,13 +168,13 @@ const BoardAnalyzer: React.FC = () => {
         {isLoading ? <><Spinner /> Analyzing...</> : 'Analyze Board'}
       </button>
 
-      {error && <div className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md">{error}</div>}
+      {error && <div className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md" role="alert" aria-live="polite">{error}</div>}
 
       {result && (
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg border">
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg border" aria-live="polite">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">AI Suggestions:</h3>
             <div className="space-y-4 text-gray-700">
-               <MarkdownRenderer content={result} />
+               {result.trim() ? <MarkdownRenderer content={result} /> : <p>The AI could not find any suggestions for the provided board and letters.</p>}
             </div>
         </div>
       )}

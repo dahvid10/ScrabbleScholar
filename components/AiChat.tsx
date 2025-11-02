@@ -11,6 +11,7 @@ const AiChat: React.FC = () => {
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isMounted = useRef(true);
 
   useEffect(() => {
     const initChat = () => {
@@ -22,6 +23,10 @@ const AiChat: React.FC = () => {
       }]);
     };
     initChat();
+    
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
   
   useEffect(() => {
@@ -39,13 +44,19 @@ const AiChat: React.FC = () => {
     try {
       const response = await chatSession.sendMessage({ message: userMessage.text });
       const modelMessage: ChatMessage = { role: 'model', text: response.text };
-      setMessages(prev => [...prev, modelMessage]);
+      if (isMounted.current) {
+        setMessages(prev => [...prev, modelMessage]);
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       const errorMessage: ChatMessage = { role: 'model', text: "Sorry, I encountered an error. Please try again." };
-      setMessages(prev => [...prev, errorMessage]);
+      if (isMounted.current) {
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
   };
   
@@ -72,7 +83,7 @@ const AiChat: React.FC = () => {
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-amber-700 text-white flex items-center justify-center font-bold flex-shrink-0">S</div>
               <div className="max-w-md p-3 rounded-xl bg-white shadow-sm flex items-center">
-                  <Spinner />
+                  <Spinner className="h-5 w-5 text-amber-700" />
                   <span className="ml-2 text-sm text-gray-500">Thinking...</span>
               </div>
             </div>

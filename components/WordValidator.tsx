@@ -43,7 +43,10 @@ const WordValidator: React.FC = () => {
         <input
           type="text"
           value={word}
-          onChange={(e) => setWord(e.target.value)}
+          onChange={(e) => {
+             const sanitized = e.target.value.trim().split(' ')[0].replace(/[^a-zA-Z]/g, '');
+             setWord(sanitized);
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Enter a word..."
           className="flex-grow px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
@@ -53,14 +56,14 @@ const WordValidator: React.FC = () => {
           disabled={isLoading}
           className="flex-shrink-0 flex justify-center items-center gap-2 bg-amber-700 text-white font-bold py-2 px-6 rounded-md hover:bg-amber-800 disabled:bg-amber-400 transition-colors duration-300"
         >
-          {isLoading ? <Spinner /> : 'Check'}
+          {isLoading ? <Spinner className="h-5 w-5 text-white" /> : 'Check'}
         </button>
       </div>
 
-      {error && <div className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md">{error}</div>}
+      {error && <div className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md" role="alert" aria-live="polite">{error}</div>}
 
       {result && (
-        <div className={`mt-8 p-4 rounded-lg ${result.isValid ? 'bg-green-100 border-green-400' : 'bg-red-100 border-red-400'} border`}>
+        <div className={`mt-8 p-4 rounded-lg ${result.isValid ? 'bg-green-100 border-green-400' : 'bg-red-100 border-red-400'} border`} role="status" aria-live="polite">
           <h3 className={`text-xl font-bold ${result.isValid ? 'text-green-800' : 'text-red-800'}`}>
             "{word}" is {result.isValid ? 'a valid' : 'not a valid'} Scrabble word.
           </h3>
