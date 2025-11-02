@@ -10,16 +10,12 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // Fix: Reverted to a constructor for state initialization.
-  // This ensures `this.props` is correctly typed and available throughout the component,
-  // resolving the type error in the render method.
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: undefined,
-    };
-  }
+  // Fix: Initialized state using a class field.
+  // This modern syntax resolves errors related to `this.state` and `this.props` not being found on the component type.
+  state: State = {
+    hasError: false,
+    error: undefined,
+  };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };

@@ -8,7 +8,6 @@ export enum AppView {
 export enum Theme {
   Light = 'light',
   Dark = 'dark',
-  System = 'system',
 }
 
 export interface ChatMessage {
