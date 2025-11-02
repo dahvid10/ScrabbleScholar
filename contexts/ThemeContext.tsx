@@ -9,34 +9,29 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme') as Theme;
-      // If a valid theme is saved in localStorage, use it.
-      if (savedTheme === Theme.Light || savedTheme === Theme.Dark) {
-        return savedTheme;
-      }
-      // Otherwise, use the system preference as the initial default.
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return Theme.Dark;
-      }
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') {
+      return Theme.Light;
     }
-    // Fallback to light theme.
-    return Theme.Light;
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme === Theme.Light || savedTheme === Theme.Dark) {
+      return savedTheme;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? Theme.Dark : Theme.Light;
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
     
-    // Set class and local storage based on the current theme.
-    root.classList.toggle('dark', theme === Theme.Dark);
+    if (theme === Theme.Dark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    
     localStorage.setItem('theme', theme);
   }, [theme]);
   
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
-
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
