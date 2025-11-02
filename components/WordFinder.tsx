@@ -43,7 +43,7 @@ const WordFinder: React.FC = () => {
       const numericLength = anyLength ? undefined : parseInt(length, 10);
       const result = await geminiService.findWords(letters.trim().toLowerCase(), numericLength);
       setResults(result.words);
-      if (result.words.length > 0 && result.dictionarySource && result.dictionaryLink) {
+      if (result.words.length > 0 && result.dictionarySource && result.dictionaryLink !== null) {
         setDictionarySource({ name: result.dictionarySource, link: result.dictionaryLink });
       }
     } catch (err: any) {
@@ -149,15 +149,21 @@ const WordFinder: React.FC = () => {
             <div className="flex flex-wrap justify-between items-baseline gap-2 mb-3">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Found {results.length} words:</h3>
               {dictionarySource && (
-                  <a 
-                      href={dictionarySource.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-xs text-amber-700 dark:text-amber-400 hover:underline"
-                      aria-label={`Dictionary source: ${dictionarySource.name}`}
-                  >
-                      Source: {dictionarySource.name}
-                  </a>
+                  dictionarySource.link ? (
+                      <a 
+                          href={dictionarySource.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-xs text-amber-700 dark:text-amber-400 hover:underline"
+                          aria-label={`Dictionary source: ${dictionarySource.name}`}
+                      >
+                          Source: {dictionarySource.name}
+                      </a>
+                  ) : (
+                      <span className="text-xs text-amber-700 dark:text-amber-400" aria-label={`Dictionary source: ${dictionarySource.name}`}>
+                          Source: {dictionarySource.name}
+                      </span>
+                  )
               )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 text-center">

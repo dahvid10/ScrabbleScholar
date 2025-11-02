@@ -22,9 +22,23 @@ const safeJsonParse = <T>(jsonString: string, fallback: T): T => {
 
 export const findWords = async (letters: string, length?: number): Promise<WordFinderResult> => {
   try {
-    const prompt = length
-      ? `You are a Scrabble dictionary expert. You MUST strictly use words from the Merriam-Webster dictionary. Based on the letters '${letters}', find all possible Scrabble-valid words that are exactly ${length} letters long. Return the result ONLY as a JSON object with this exact schema: { "words": string[], "dictionarySource": "Merriam-Webster", "dictionaryLink": "https://www.merriam-webster.com/" }. If no words are found, the 'words' array must be empty. Do not include any other text, explanations, or markdown formatting outside of the JSON object.`
-      : `You are a Scrabble dictionary expert. You MUST strictly use words from the Merriam-Webster dictionary. Based on the letters '${letters}', find all possible Scrabble-valid words of any length. The result's 'words' array must be sorted by word length in descending order. Return the result ONLY as a JSON object with this exact schema: { "words": string[], "dictionarySource": "Merriam-Webster", "dictionaryLink": "https://www.merriam-webster.com/" }. If no words are found, the 'words' array must be empty. Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
+    const prompt = `You are a dictionary expert. Your task is to find all possible words from the given letters and then filter them based on their validity across three major English dictionaries.
+Based on the letters '${letters}', first, generate a list of all potential words ${length ? `that are exactly ${length} letters long` : 'of any length'}.
+Second, for each potential word, you MUST verify its validity in ALL THREE of the following major dictionaries:
+1. Merriam-Webster Collegiate Dictionary
+2. Oxford English Dictionary
+3. Collins English Dictionary
+
+A word is only considered valid if it exists in all three dictionaries.
+
+Return the result ONLY as a JSON object with this exact schema: { "words": string[], "dictionarySource": "string", "dictionaryLink": "string" }.
+- The 'words' array must contain only the words that are valid in all three dictionaries.
+- If no such words are found, the 'words' array must be empty.
+- The 'dictionarySource' property should be "Cross-validated (MW, OED, Collins)".
+- The 'dictionaryLink' property should be an empty string.
+- The result's 'words' array must be sorted by word length in descending order, then alphabetically.
+
+Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -48,7 +62,8 @@ export const findWords = async (letters: string, length?: number): Promise<WordF
     
     const result = safeJsonParse<WordFinderResult>(response.text, { words: [], dictionarySource: '', dictionaryLink: '' });
 
-    if (!length && result.words) {
+    // The model is now asked to sort, but we can keep client-side sorting as a fallback.
+    if (result.words) {
         result.words.sort((a, b) => b.length - a.length || a.localeCompare(b));
     }
     
@@ -61,7 +76,7 @@ export const findWords = async (letters: string, length?: number): Promise<WordF
 
 export const getWordDefinition = async (word: string, dictionaryName: string = 'Merriam-Webster'): Promise<DefinitionResult> => {
    try {
-    const prompt = `You are a dictionary expert. Using the ${dictionaryName} dictionary as your primary source, is the word '${word}' a valid Scrabble word? Provide its definition if it is. Return the result ONLY as a JSON object with this exact schema: { "isValid": boolean, "definition": string }. The definition should be an empty string if the word is not valid or not found in that specific dictionary. Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
+    const prompt = `You are a dictionary expert. Using the ${dictionaryName} dictionary as your primary source, is the word '${word}' a valid word? Provide its definition if it is. Return the result ONLY as a JSON object with this exact schema: { "isValid": boolean, "definition": string }. The definition should be an empty string if the word is not valid or not found in that specific dictionary. Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -86,7 +101,7 @@ export const getWordDefinition = async (word: string, dictionaryName: string = '
 
 export const crossValidateWord = async (word: string): Promise<ValidityStatus[]> => {
   try {
-    const prompt = `You are a Scrabble dictionary expert. For the word '${word}', check its validity in these three official dictionaries: Merriam-Webster Official Scrabble Players Dictionary (OSPD), Collins Scrabble Words (CSW), and The Official Tournament and Club Word List (TWL). Return the result ONLY as a JSON object with this exact schema: an array of objects, where each object is { "dictionaryName": string, "dictionaryDescription": string, "isValid": boolean }. The descriptions must be exactly: for OSPD "Used in the USA, Canada, and Thailand for recreational play.", for CSW "Used in most English-speaking countries for tournaments and clubs.", and for TWL "Used for official club and tournament play in North America.". Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
+    const prompt = `You are a dictionary expert. For the word '${word}', check its validity in these three major English dictionaries: Merriam-Webster Collegiate Dictionary, Oxford English Dictionary, and Collins English Dictionary. Return the result ONLY as a JSON object with this exact schema: an array of objects, where each object is { "dictionaryName": string, "dictionaryDescription": string, "isValid": boolean }. The descriptions must be exactly: for Merriam-Webster Collegiate Dictionary "A leading American English dictionary.", for Oxford English Dictionary "The principal historical dictionary of the English language.", and for Collins English Dictionary "A major British English dictionary.". Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
     
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
