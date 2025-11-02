@@ -5,14 +5,26 @@ export enum AppView {
   AIChat = 'AI Chat',
 }
 
+export enum Theme {
+  Light = 'light',
+  Dark = 'dark',
+  System = 'system',
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
 }
 
-export interface WordValidationResult {
+export interface DefinitionResult {
   isValid: boolean;
   definition: string;
+}
+
+export interface ValidityStatus {
+  dictionaryName: string;
+  dictionaryDescription: string;
+  isValid: boolean;
 }
 
 export interface WordFinderResult {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AppView } from '../types';
 import { SparklesIcon } from './icons/SparklesIcon';
@@ -21,7 +20,7 @@ const tabOptions = [
 
 const Tabs: React.FC<TabsProps> = ({ activeView, setActiveView }) => {
   return (
-    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 p-2 bg-amber-200/50 rounded-full">
+    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 p-2 bg-amber-200/50 dark:bg-gray-700/50 rounded-full">
       {tabOptions.map(({ view, icon }) => (
         <button
           key={view}
@@ -30,8 +29,8 @@ const Tabs: React.FC<TabsProps> = ({ activeView, setActiveView }) => {
             flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-600
             ${
               activeView === view
-                ? 'bg-amber-800 text-white shadow-md'
-                : 'bg-white text-amber-800 hover:bg-amber-100'
+                ? 'bg-amber-800 dark:bg-amber-600 text-white shadow-md'
+                : 'bg-white dark:bg-gray-800 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-gray-700'
             }
           `}
         >

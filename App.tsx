@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from './components/Header';
 import Tabs from './components/Tabs';
@@ -27,15 +26,15 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen font-sans text-gray-800 bg-amber-50/50">
+    <div className="min-h-screen font-sans text-gray-800 dark:text-gray-200 bg-amber-50/50 dark:bg-gray-900">
       <Header />
       <main className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
         <Tabs activeView={activeView} setActiveView={setActiveView} />
-        <div className="mt-6 bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           {renderActiveView()}
         </div>
       </main>
-      <footer className="text-center p-4 text-xs text-amber-700">
+      <footer className="text-center p-4 text-xs text-amber-700 dark:text-amber-500">
         <p>&copy; 2024 Scrabble Scholar. Enhance your game.</p>
       </footer>
     </div>

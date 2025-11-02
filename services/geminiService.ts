@@ -1,5 +1,5 @@
 import { GoogleGenAI, Chat, Type, GenerateContentResponse } from "@google/genai";
-import { WordValidationResult, WordFinderResult } from '../types';
+import { DefinitionResult, ValidityStatus, WordFinderResult } from '../types';
 
 if (!process.env.API_KEY) {
   throw new Error("API_KEY environment variable not set. This is a fatal error and the application cannot start.");
@@ -59,9 +59,9 @@ export const findWords = async (letters: string, length?: number): Promise<WordF
   }
 };
 
-export const validateWord = async (word: string): Promise<WordValidationResult> => {
+export const getWordDefinition = async (word: string, dictionaryName: string = 'Merriam-Webster'): Promise<DefinitionResult> => {
    try {
-    const prompt = `You are a Scrabble dictionary expert using the Merriam-Webster dictionary. Is the word '${word}' a valid Scrabble word according to Merriam-Webster? Provide its definition if it is. Return the result ONLY as a JSON object with this exact schema: { "isValid": boolean, "definition": string }. The definition should be an empty string if the word is not valid. Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
+    const prompt = `You are a dictionary expert. Using the ${dictionaryName} dictionary as your primary source, is the word '${word}' a valid Scrabble word? Provide its definition if it is. Return the result ONLY as a JSON object with this exact schema: { "isValid": boolean, "definition": string }. The definition should be an empty string if the word is not valid or not found in that specific dictionary. Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -77,12 +77,43 @@ export const validateWord = async (word: string): Promise<WordValidationResult> 
         },
       },
     });
-    return safeJsonParse<WordValidationResult>(response.text, { isValid: false, definition: "Could not parse the response from the AI. Please try again." });
+    return safeJsonParse<DefinitionResult>(response.text, { isValid: false, definition: "Could not parse the response from the AI. Please try again." });
   } catch (error) {
-    console.error("Error validating word:", error);
-    throw new Error("An issue occurred while validating the word. The AI model might be temporarily unavailable. Please try again later.");
+    console.error("Error getting word definition:", error);
+    throw new Error("An issue occurred while getting the definition. The AI model might be temporarily unavailable. Please try again later.");
   }
 };
+
+export const crossValidateWord = async (word: string): Promise<ValidityStatus[]> => {
+  try {
+    const prompt = `You are a Scrabble dictionary expert. For the word '${word}', check its validity in these three official dictionaries: Merriam-Webster Official Scrabble Players Dictionary (OSPD), Collins Scrabble Words (CSW), and The Official Tournament and Club Word List (TWL). Return the result ONLY as a JSON object with this exact schema: an array of objects, where each object is { "dictionaryName": string, "dictionaryDescription": string, "isValid": boolean }. The descriptions must be exactly: for OSPD "Used in the USA, Canada, and Thailand for recreational play.", for CSW "Used in most English-speaking countries for tournaments and clubs.", and for TWL "Used for official club and tournament play in North America.". Do not include any other text, explanations, or markdown formatting outside of the JSON object.`;
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              dictionaryName: { type: Type.STRING },
+              dictionaryDescription: { type: Type.STRING },
+              isValid: { type: Type.BOOLEAN }
+            },
+            required: ['dictionaryName', 'dictionaryDescription', 'isValid']
+          }
+        },
+      },
+    });
+
+    return safeJsonParse<ValidityStatus[]>(response.text, []);
+  } catch (error) {
+    console.error("Error cross-validating word:", error);
+    throw new Error("An issue occurred while validating the word across dictionaries. The AI model might be temporarily unavailable. Please try again later.");
+  }
+}
 
 export const analyzeBoard = async (image: { inlineData: { data: string; mimeType: string } }, letters: string): Promise<string> => {
   try {

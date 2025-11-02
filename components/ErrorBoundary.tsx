@@ -10,10 +10,16 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // Fix: Removed explicit 'public' modifiers. While valid TypeScript, this can resolve obscure tooling or parser errors like the one reported for `this.props`.
-  state: State = {
-    hasError: false,
-  };
+  // Fix: Reverted to a constructor for state initialization.
+  // This ensures `this.props` is correctly typed and available throughout the component,
+  // resolving the type error in the render method.
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: undefined,
+    };
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -26,17 +32,16 @@ class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-amber-100 p-4">
-            <div className="max-w-lg w-full p-8 bg-white shadow-2xl rounded-xl text-center border border-red-200">
-                <h1 className="text-3xl font-bold text-red-800 mb-4">Oops! Something went wrong.</h1>
-                <p className="text-gray-700 mb-6">
+        <div className="min-h-screen flex items-center justify-center bg-amber-100 dark:bg-gray-900 p-4">
+            <div className="max-w-lg w-full p-8 bg-white dark:bg-gray-800 shadow-2xl rounded-xl text-center border border-red-200 dark:border-red-800">
+                <h1 className="text-3xl font-bold text-red-800 dark:text-red-400 mb-4">Oops! Something went wrong.</h1>
+                <p className="text-gray-700 dark:text-gray-300 mb-6">
                     An unexpected error occurred. This might be due to a missing API key or a network issue. 
                     Please try refreshing the page. If the problem persists, please check the console for more details.
                 </p>
-                {/* Fix: Changed check to this.state.error to ensure it is not null before accessing its properties, preventing a potential runtime error. */}
                 {this.state.error && (
-                    <details className="text-left bg-gray-100 p-3 rounded text-sm text-gray-600">
-                        <summary className="cursor-pointer font-medium text-gray-700">Error Details</summary>
+                    <details className="text-left bg-gray-100 dark:bg-gray-700 p-3 rounded text-sm text-gray-600 dark:text-gray-400">
+                        <summary className="cursor-pointer font-medium text-gray-700 dark:text-gray-300">Error Details</summary>
                         <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap">
                             {this.state.error.message}
                         </pre>
@@ -44,7 +49,7 @@ class ErrorBoundary extends Component<Props, State> {
                 )}
                 <button 
                     onClick={() => window.location.reload()}
-                    className="mt-6 bg-amber-700 text-white font-bold py-2 px-6 rounded-md hover:bg-amber-800 transition-colors duration-300"
+                    className="mt-6 bg-amber-700 text-white font-bold py-2 px-6 rounded-md hover:bg-amber-800 dark:bg-amber-600 dark:hover:bg-amber-700 transition-colors duration-300"
                 >
                     Refresh Page
                 </button>

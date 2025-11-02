@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Chat } from '@google/genai';
 import * as geminiService from '../services/geminiService';
@@ -69,12 +68,12 @@ const AiChat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[70vh]">
-      <div className="flex-grow p-4 sm:p-6 overflow-y-auto bg-amber-50">
+      <div className="flex-grow p-4 sm:p-6 overflow-y-auto bg-amber-50 dark:bg-gray-800">
         <div className="space-y-4">
           {messages.map((msg, index) => (
             <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
               {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-amber-700 text-white flex items-center justify-center font-bold flex-shrink-0">S</div>}
-              <div className={`max-w-md p-3 rounded-xl ${msg.role === 'user' ? 'bg-amber-600 text-white' : 'bg-white shadow-sm'}`}>
+              <div className={`max-w-md p-3 rounded-xl ${msg.role === 'user' ? 'bg-amber-600 text-white' : 'bg-white dark:bg-gray-700 shadow-sm'}`}>
                 <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
               </div>
             </div>
@@ -82,16 +81,16 @@ const AiChat: React.FC = () => {
           {isLoading && (
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-amber-700 text-white flex items-center justify-center font-bold flex-shrink-0">S</div>
-              <div className="max-w-md p-3 rounded-xl bg-white shadow-sm flex items-center">
-                  <Spinner className="h-5 w-5 text-amber-700" />
-                  <span className="ml-2 text-sm text-gray-500">Thinking...</span>
+              <div className="max-w-md p-3 rounded-xl bg-white dark:bg-gray-700 shadow-sm flex items-center">
+                  <Spinner className="h-5 w-5 text-amber-700 dark:text-amber-500" />
+                  <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Thinking...</span>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className="p-4 border-t bg-white">
+      <div className="p-4 border-t bg-white dark:bg-gray-900 dark:border-gray-700">
         <div className="flex items-center gap-2">
           <textarea
             value={currentMessage}
@@ -99,13 +98,13 @@ const AiChat: React.FC = () => {
             onKeyDown={handleKeyDown}
             placeholder="Type your question..."
             rows={1}
-            className="w-full px-4 py-2 border border-gray-300 rounded-full shadow-sm focus:ring-amber-500 focus:border-amber-500 resize-none"
+            className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-full shadow-sm focus:ring-amber-500 focus:border-amber-500 resize-none dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
             disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !currentMessage.trim()}
-            className="bg-amber-700 text-white font-bold p-2.5 rounded-full hover:bg-amber-800 disabled:bg-amber-400 transition-colors duration-300"
+            className="bg-amber-700 text-white font-bold p-2.5 rounded-full hover:bg-amber-800 disabled:bg-amber-400 transition-colors duration-300 dark:bg-amber-600 dark:hover:bg-amber-700"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />

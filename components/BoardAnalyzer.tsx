@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import Spinner from './Spinner';
@@ -17,8 +16,8 @@ const fileToGenerativePart = async (file: File) => {
 
 const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
     const processLine = (line: string): string => {
-        if (line.startsWith('### ')) return `<h3>${line.substring(4)}</h3>`;
-        if (line.startsWith('## ')) return `<h2>${line.substring(3)}</h2>`;
+        if (line.startsWith('### ')) return `<h3 class="text-lg font-semibold text-amber-800 dark:text-amber-400">${line.substring(4)}</h3>`;
+        if (line.startsWith('## ')) return `<h2 class="text-xl font-bold">${line.substring(3)}</h2>`;
         if (line.startsWith('# ')) return `<h1>${line.substring(2)}</h1>`;
         
         line = line
@@ -41,7 +40,7 @@ const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
         const isListItem = trimmedLine.startsWith('* ');
 
         if (isListItem && !inList) {
-            html += '<ul>';
+            html += '<ul class="list-disc list-inside space-y-1">';
             inList = true;
         } else if (!isListItem && inList) {
             html += '</ul>';
@@ -122,32 +121,32 @@ const BoardAnalyzer: React.FC = () => {
 
   return (
     <div className="p-6 md:p-8">
-      <h2 className="text-2xl font-bold text-amber-900 mb-4">Board Analyzer</h2>
-      <p className="text-gray-600 mb-6">Upload a photo of your Scrabble board and enter your letters to get strategic move suggestions from our AI grandmaster.</p>
+      <h2 className="text-2xl font-bold text-amber-900 dark:text-amber-300 mb-4">Board Analyzer</h2>
+      <p className="text-gray-600 dark:text-gray-400 mb-6">Upload a photo of your Scrabble board and enter your letters to get strategic move suggestions from our AI grandmaster.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label htmlFor="board-upload" className="block text-sm font-medium text-gray-700 mb-1">Board Image</label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+          <label htmlFor="board-upload" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Board Image</label>
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
             <div className="space-y-1 text-center">
               {imagePreview ? (
                 <img src={imagePreview} alt="Scrabble board preview" className="mx-auto h-32 w-auto object-contain rounded-md" />
               ) : (
-                <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <UploadIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
               )}
-              <div className="flex text-sm text-gray-600">
-                <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-amber-600 hover:text-amber-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-amber-500">
+              <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                <label htmlFor="file-upload" className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-amber-600 hover:text-amber-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-amber-500">
                   <span>Upload a file</span>
                   <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={handleFileChange} />
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
             </div>
           </div>
         </div>
         <div>
-          <label htmlFor="user-letters" className="block text-sm font-medium text-gray-700 mb-1">Your Letters</label>
+          <label htmlFor="user-letters" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Letters</label>
           <input
             id="user-letters"
             type="text"
@@ -155,7 +154,7 @@ const BoardAnalyzer: React.FC = () => {
             onChange={(e) => setUserLetters(e.target.value.replace(/[^a-zA-Z]/g, ''))}
             maxLength={MAX_LETTERS_LENGTH}
             placeholder="e.g., AEILNOR"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
+            className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
           />
         </div>
       </div>
@@ -163,17 +162,17 @@ const BoardAnalyzer: React.FC = () => {
       <button
         onClick={handleAnalyze}
         disabled={isLoading}
-        className="w-full flex justify-center items-center gap-2 bg-amber-700 text-white font-bold py-3 px-4 rounded-md hover:bg-amber-800 disabled:bg-amber-400 transition-colors duration-300"
+        className="w-full flex justify-center items-center gap-2 bg-amber-700 text-white font-bold py-3 px-4 rounded-md hover:bg-amber-800 disabled:bg-amber-400 transition-colors duration-300 dark:bg-amber-600 dark:hover:bg-amber-700"
       >
         {isLoading ? <><Spinner /> Analyzing...</> : 'Analyze Board'}
       </button>
 
-      {error && <div className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md" role="alert" aria-live="polite">{error}</div>}
+      {error && <div className="mt-4 text-center text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/50 p-3 rounded-md" role="alert" aria-live="polite">{error}</div>}
 
       {result && (
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg border" aria-live="polite">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">AI Suggestions:</h3>
-            <div className="space-y-4 text-gray-700">
+        <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border dark:border-gray-700" aria-live="polite">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">AI Suggestions:</h3>
+            <div className="space-y-4 text-gray-700 dark:text-gray-300">
                {result.trim() ? <MarkdownRenderer content={result} /> : <p>The AI could not find any suggestions for the provided board and letters.</p>}
             </div>
         </div>
